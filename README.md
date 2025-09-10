@@ -2,7 +2,7 @@
 
 A sophisticated web application that predicts the outcome of UFC fights using machine learning models trained on comprehensive historical fight data. The system features advanced bias elimination, weight class filtering, and dual-perspective prediction analysis.
 
-## 🥊 Key Features
+## Key Features
 
 ### Core Prediction System
 - **Machine Learning Models**: Uses trained red/blue corner models with confidence-weighted predictions
@@ -27,7 +27,7 @@ A sophisticated web application that predicts the outcome of UFC fights using ma
 - **Data Validation**: Robust error handling and input validation
 - **Performance Optimization**: Efficient data processing and caching
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Python 3.7+
@@ -66,7 +66,7 @@ A sophisticated web application that predicts the outcome of UFC fights using ma
    - Open your browser to: `http://localhost:5000`
    - The frontend is automatically served by the Flask backend
 
-## 🎯 How to Use
+## How to Use
 
 1. **Select Weight Class** (Optional)
    - Choose a specific weight class to filter available fighters
@@ -85,7 +85,7 @@ A sophisticated web application that predicts the outcome of UFC fights using ma
      - Model details and methodology
      - Weight class information
 
-## 🔧 Technical Architecture
+## Technical Architecture
 
 ### Backend (`backend/app.py`)
 - **Framework**: Flask with CORS support
@@ -106,7 +106,7 @@ A sophisticated web application that predicts the outcome of UFC fights using ma
 - **Confidence Weighting**: Intelligent averaging based on model certainty
 - **Bias Prevention**: Randomized fighter assignment and dual-perspective validation
 
-## 📡 API Endpoints
+## API Endpoints
 
 ### Prediction
 - **`POST /predict`** — Main prediction endpoint
@@ -126,14 +126,14 @@ A sophisticated web application that predicts the outcome of UFC fights using ma
 - **`GET /`** — Serves the main application
 - **`GET /<path>`** — Serves static frontend files
 
-## 🧪 Testing & Validation
+## Testing & Validation
 
 ### Bias Elimination Verification
 Our comprehensive testing confirmed the elimination of positional bias:
 
-- ✅ **Jon Jones vs Daniel Cormier**: Same winner regardless of input order
-- ✅ **Conor McGregor vs Nate Diaz**: Consistent predictions both ways
-- ✅ **Anderson Silva vs Chael Sonnen**: No positional dependency
+- **Jon Jones vs Daniel Cormier**: Same winner regardless of input order
+- **Conor McGregor vs Nate Diaz**: Consistent predictions both ways
+- **Anderson Silva vs Chael Sonnen**: No positional dependency
 
 ### Model Consistency
 - Models make consistent predictions based on fighter characteristics
@@ -141,11 +141,11 @@ Our comprehensive testing confirmed the elimination of positional bias:
 - Confidence-weighted averaging provides robust predictions
 
 ### Weight Class Functionality
-- ✅ Successful filtering of fighters by weight class
-- ✅ Validation prevents unrealistic matchups
-- ✅ Autocomplete works correctly with weight class constraints
+- Successful filtering of fighters by weight class
+- Validation prevents unrealistic matchups
+- Autocomplete works correctly with weight class constraints
 
-## 🛠️ Key Improvements Implemented
+## Key Improvements Implemented
 
 ### 1. Bias Elimination
 - **Fighter Order Randomization**: Eliminates any potential positional effects
@@ -171,7 +171,7 @@ Our comprehensive testing confirmed the elimination of positional bias:
 - **Performance**: Optimized API calls and data processing
 - **Debugging**: Extensive logging for troubleshooting
 
-## 📊 Model Performance
+## Model Performance
 
 ### Prediction Methodology
 1. **Feature Calculation**: Statistical differences between fighters (strikes, takedowns, etc.)
@@ -185,7 +185,7 @@ Our comprehensive testing confirmed the elimination of positional bias:
 - **Medium Confidence**: Predictions 55-70% probability  
 - **Low Confidence**: Predictions 50-55% probability
 
-## 🔮 Future Enhancements
+## Future Enhancements
 
 - **Historical Head-to-Head**: Analysis of previous fights between selected fighters
 - **Fighter Statistics Dashboard**: Detailed fighter stats and career highlights
@@ -194,7 +194,7 @@ Our comprehensive testing confirmed the elimination of positional bias:
 - **Live Data Integration**: Real-time updates from UFC data feeds
 - **Model Improvements**: Continuous training with new fight data
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ufc-predictor/
@@ -212,7 +212,7 @@ ufc-predictor/
 └── IMPROVEMENTS_SUMMARY.md   # Detailed technical improvements
 ```
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -226,7 +226,7 @@ ufc-predictor/
 - Use browser developer tools to inspect API responses
 - Check console output for detailed prediction analysis
 
-## 📄 License
+## License
 
 This project is for educational and demonstration purposes. UFC and fighter data used under fair use for statistical analysis.
 
