@@ -37,32 +37,11 @@ jobs:
           # Create _site directory for GitHub Pages
           mkdir -p _site
           
-          # Copy docs content to _site
+          # Copy docs content to _site (this should make index.html the main page)
           cp -r docs/* _site/
           
-          # Create a simple README for the GitHub Pages site
-          cat > _site/README.md << 'EOF'
-          # UFC Fighter Matchup Predictor - GitHub Pages Demo
-          
-          This is a static demonstration version of the UFC Fighter Matchup Predictor.
-          
-          ## View the Demo
-          Visit the [live demo](https://samw7140.github.io/ufc-predictor/) to try the application.
-          
-          ## Full Application
-          For the complete experience with real machine learning predictions, clone the repository and run locally:
-          
-          ```bash
-          git clone https://github.com/SamW7140/ufc-predictor.git
-          cd ufc-predictor
-          python -m venv .venv
-          source .venv/bin/activate  # Windows: .venv\Scripts\activate
-          pip install -r requirements.txt
-          python backend/app.py
-          ```
-          
-          Then visit `http://localhost:5000`
-          EOF
+          # Ensure index.html takes precedence over README
+          ls -la _site/
           
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
