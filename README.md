@@ -29,6 +29,9 @@ A sophisticated web application that predicts the outcome of UFC fights using ma
 
 ## 🚀 Quick Start
 
+### Live Demo
+🎯 **[Try the GitHub Pages Demo](https://samw7140.github.io/ufc-predictor/)** - Experience the interface with sample predictions
+
 ### Prerequisites
 - Python 3.7+
 - Virtual environment (recommended)
@@ -194,10 +197,43 @@ Our comprehensive testing confirmed the elimination of positional bias:
 - **Live Data Integration**: Real-time updates from UFC data feeds
 - **Model Improvements**: Continuous training with new fight data
 
-## 📁 Project Structure
+## 🌐 Deployment Options
+
+### GitHub Pages (Static Demo)
+The application is automatically deployed to GitHub Pages with a static demonstration version:
+- **Live Demo**: https://samw7140.github.io/ufc-predictor/
+- **Features**: Sample predictions, full UI experience, mock fighter data
+- **Limitations**: Uses pre-defined predictions, not real ML models
+- **Auto-deployment**: Updates automatically on pushes to main branch
+
+### Local Development (Full Application)
+For the complete experience with real machine learning predictions:
+
+1. **Clone and setup**:
+   ```bash
+   git clone https://github.com/SamW7140/ufc-predictor.git
+   cd ufc-predictor
+   python -m venv .venv
+   source .venv/bin/activate  # Windows: .venv\Scripts\activate
+   pip install -r requirements.txt
+   ```
+
+2. **Run the application**:
+   ```bash
+   python backend/app.py
+   ```
+
+3. **Access**: Visit `http://localhost:5000`
+
+### Azure Deployment
+The application also supports Azure App Service deployment via GitHub Actions workflow.
 
 ```
 ufc-predictor/
+├── docs/                      # GitHub Pages static demo
+│   ├── index.html            # Demo HTML interface
+│   ├── script.js             # Client-side demo logic
+│   └── styles.css            # Demo styling
 ├── backend/
 │   ├── app.py                 # Main Flask application
 │   ├── *.joblib              # Trained ML models and preprocessors
@@ -207,6 +243,9 @@ ufc-predictor/
 │   ├── index.html            # Main web interface
 │   ├── script.js             # Frontend JavaScript
 │   └── styles.css            # Modern CSS styling
+├── .github/workflows/
+│   ├── deploy-github-pages.yml  # GitHub Pages deployment
+│   └── azure-deploy.yml      # Azure deployment
 ├── requirements.txt          # Python dependencies
 ├── README.md                 # This file
 └── IMPROVEMENTS_SUMMARY.md   # Detailed technical improvements
