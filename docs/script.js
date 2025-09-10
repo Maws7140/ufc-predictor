@@ -357,4 +357,14 @@ toggleDetailsBtn.addEventListener('click', () => {
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     console.log('UFC Predictor Demo initialized with', mockFighters.length, 'fighters');
+    
+    // Verify all required elements are present
+    const requiredElements = ['fighter1', 'fighter2', 'predictBtn', 'weight-class'];
+    const missingElements = requiredElements.filter(id => !document.getElementById(id));
+    
+    if (missingElements.length > 0) {
+        console.error('Missing required elements:', missingElements);
+    } else {
+        console.log('All required elements found - app should be functional');
+    }
 });

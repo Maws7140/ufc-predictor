@@ -40,8 +40,11 @@ jobs:
           # Copy docs content to _site (this should make index.html the main page)
           cp -r docs/* _site/
           
-          # Ensure index.html takes precedence over README
+          # Debug: Show what files are being deployed
+          echo "Files being deployed to GitHub Pages:"
           ls -la _site/
+          echo "Contents of index.html (first 5 lines):"
+          head -5 _site/index.html
           
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
