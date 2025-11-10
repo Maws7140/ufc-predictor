@@ -1,22 +1,86 @@
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
+from flask_caching import Cache
+from flasgger import Swagger, swag_from
 import joblib
 import pandas as pd
 import os
 import numpy as np
 from sklearn.compose import ColumnTransformer
 import random
+import logging
+from functools import wraps
+from datetime import datetime
+import json
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)
 
+# Configure caching
+cache_config = {
+    'CACHE_TYPE': 'simple',
+    'CACHE_DEFAULT_TIMEOUT': 300
+}
+app.config.from_mapping(cache_config)
+cache = Cache(app)
+
+# Swagger configuration
+swagger_config = {
+    "headers": [],
+    "specs": [
+        {
+            "endpoint": 'apispec',
+            "route": '/apispec.json',
+            "rule_filter": lambda rule: True,
+            "model_filter": lambda tag: True,
+        }
+    ],
+    "static_url_path": "/flasgger_static",
+    "swagger_ui": True,
+    "specs_route": "/api/docs"
+}
+swagger = Swagger(app, config=swagger_config)
+
 # Load the trained models and scaler
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-red_model = joblib.load(os.path.join(project_root, 'backend', 'red_model.joblib'))
-blue_model = joblib.load(os.path.join(project_root, 'backend', 'blue_model.joblib'))
-scaler = joblib.load(os.path.join(project_root, 'backend', 'scaler.joblib'))
-weight_class_encoder = joblib.load(os.path.join(project_root, 'backend', 'weight_class_encoder.joblib'))
-fighters_df = pd.read_csv(os.path.join(project_root, 'backend', 'fighters.csv'))
+logger.info("Loading models and data...")
+try:
+    red_model = joblib.load(os.path.join(project_root, 'backend', 'red_model.joblib'))
+    blue_model = joblib.load(os.path.join(project_root, 'backend', 'blue_model.joblib'))
+    scaler = joblib.load(os.path.join(project_root, 'backend', 'scaler.joblib'))
+    weight_class_encoder = joblib.load(os.path.join(project_root, 'backend', 'weight_class_encoder.joblib'))
+    fighters_df = pd.read_csv(os.path.join(project_root, 'backend', 'fighters.csv'))
+    logger.info("Models and data loaded successfully")
+except Exception as e:
+    logger.error(f"Failed to load models or data: {str(e)}")
+    raise
+
+# Input validation utilities
+def validate_fighter_name(name):
+    """Validate and sanitize fighter name."""
+    if not name or not isinstance(name, str):
+        return False, "Fighter name must be a non-empty string"
+
+    name = name.strip()
+    if len(name) < 2:
+        return False, "Fighter name too short"
+    if len(name) > 100:
+        return False, "Fighter name too long"
+
+    return True, name
+
+def validate_fighters_different(fighter1, fighter2):
+    """Ensure two fighters are different."""
+    if fighter1.lower() == fighter2.lower():
+        return False, "Cannot predict a fighter against themselves"
+    return True, None
 
 def get_fighter_stats(fighter_name, color_prefix):
     """Get the latest stats for a fighter from processed data."""
@@ -83,17 +147,70 @@ def calculate_features(fighter1_stats, fighter2_stats, weight_class):
 
 @app.route('/predict', methods=['POST'])
 def predict_winner():
+    """
+    Predict fight winner between two fighters
+    ---
+    tags:
+      - Prediction
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - fighter1
+            - fighter2
+          properties:
+            fighter1:
+              type: string
+              description: First fighter name
+            fighter2:
+              type: string
+              description: Second fighter name
+            weight_class:
+              type: string
+              description: Weight class (optional)
+    responses:
+      200:
+        description: Prediction successful
+      400:
+        description: Invalid input
+      404:
+        description: Fighter not found
+      500:
+        description: Server error
+    """
     try:
         data = request.get_json()
+        if not data:
+            return jsonify({
+                'error': 'Request body must be JSON',
+                'status': 'error'
+            }), 400
+
         fighter1 = data.get('fighter1')
         fighter2 = data.get('fighter2')
         weight_class = data.get('weight_class')
-        
-        if not fighter1 or not fighter2:
-            return jsonify({
-                'error': 'Both fighter names are required',
-                'status': 'error'
-            }), 400
+
+        # Validate fighter1
+        valid, result = validate_fighter_name(fighter1)
+        if not valid:
+            return jsonify({'error': result, 'status': 'error'}), 400
+        fighter1 = result
+
+        # Validate fighter2
+        valid, result = validate_fighter_name(fighter2)
+        if not valid:
+            return jsonify({'error': result, 'status': 'error'}), 400
+        fighter2 = result
+
+        # Ensure fighters are different
+        valid, error_msg = validate_fighters_different(fighter1, fighter2)
+        if not valid:
+            return jsonify({'error': error_msg, 'status': 'error'}), 400
+
+        logger.info(f"Prediction request: {fighter1} vs {fighter2} at {weight_class or 'auto'}")
         
         # Randomize fighter order to eliminate positional bias
         fighter_order_randomized = random.choice([True, False])
@@ -330,6 +447,170 @@ def get_weight_classes():
         clean_weight_classes.append('Unknown')
     clean_weight_classes = sorted(set(clean_weight_classes))
     return jsonify({'weight_classes': clean_weight_classes})
+
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """
+    Health check endpoint
+    ---
+    tags:
+      - System
+    responses:
+      200:
+        description: System healthy
+    """
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': datetime.now().isoformat(),
+        'models_loaded': True
+    })
+
+@app.route('/api/stats', methods=['GET'])
+@cache.cached(timeout=600)
+def get_stats():
+    """
+    Get overall statistics about the dataset
+    ---
+    tags:
+      - Statistics
+    responses:
+      200:
+        description: Dataset statistics
+    """
+    try:
+        df = pd.read_csv(os.path.join(project_root, 'backend', 'processed_data.csv'))
+
+        stats = {
+            'total_fights': len(df),
+            'total_fighters': len(pd.concat([df['r_fighter'], df['b_fighter']]).unique()),
+            'weight_classes': len(df['weight_class'].unique()),
+            'weight_class_distribution': df['weight_class'].value_counts().to_dict()
+        }
+
+        return jsonify(stats)
+    except Exception as e:
+        logger.error(f"Error getting stats: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/fighter/<fighter_name>', methods=['GET'])
+@cache.cached(timeout=300, query_string=True)
+def get_fighter_profile(fighter_name):
+    """
+    Get detailed profile for a fighter
+    ---
+    tags:
+      - Fighters
+    parameters:
+      - in: path
+        name: fighter_name
+        required: true
+        type: string
+    responses:
+      200:
+        description: Fighter profile
+      404:
+        description: Fighter not found
+    """
+    try:
+        df = pd.read_csv(os.path.join(project_root, 'backend', 'processed_data.csv'))
+
+        # Get fights where this fighter participated
+        red_fights = df[df['r_fighter'] == fighter_name]
+        blue_fights = df[df['b_fighter'] == fighter_name]
+
+        if red_fights.empty and blue_fights.empty:
+            return jsonify({'error': 'Fighter not found'}), 404
+
+        # Calculate career stats
+        total_fights = len(red_fights) + len(blue_fights)
+
+        # Get weight classes
+        weight_classes = get_fighter_weight_classes(fighter_name)
+
+        profile = {
+            'name': fighter_name,
+            'total_fights': int(total_fights),
+            'weight_classes': weight_classes,
+            'fights_as_red': int(len(red_fights)),
+            'fights_as_blue': int(len(blue_fights))
+        }
+
+        # Get latest stats if available
+        latest_stats = get_fighter_stats(fighter_name, 'r')
+        if latest_stats is not None:
+            profile['career_stats'] = {
+                'fights': int(latest_stats.get('r_career_fights', 0)),
+                'wins': int(latest_stats.get('r_career_wins', 0)),
+                'losses': int(latest_stats.get('r_career_losses', 0)),
+                'win_rate': float(latest_stats.get('r_career_win_rate', 0)),
+                'avg_strikes': float(latest_stats.get('r_career_str', 0)) / max(1, latest_stats.get('r_career_fights', 1)),
+                'avg_takedowns': float(latest_stats.get('r_career_td', 0)) / max(1, latest_stats.get('r_career_fights', 1)),
+                'avg_knockdowns': float(latest_stats.get('r_career_kd', 0)) / max(1, latest_stats.get('r_career_fights', 1))
+            }
+
+        return jsonify(profile)
+    except Exception as e:
+        logger.error(f"Error getting fighter profile: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/compare/<fighter1>/<fighter2>', methods=['GET'])
+@cache.cached(timeout=300, query_string=True)
+def compare_fighters(fighter1, fighter2):
+    """
+    Compare two fighters side-by-side
+    ---
+    tags:
+      - Fighters
+    parameters:
+      - in: path
+        name: fighter1
+        required: true
+        type: string
+      - in: path
+        name: fighter2
+        required: true
+        type: string
+    responses:
+      200:
+        description: Fighter comparison
+      404:
+        description: Fighter not found
+    """
+    try:
+        # Get stats for both fighters
+        f1_stats = get_fighter_stats(fighter1, 'r')
+        f2_stats = get_fighter_stats(fighter2, 'r')
+
+        if f1_stats is None or f2_stats is None:
+            return jsonify({'error': 'One or both fighters not found'}), 404
+
+        comparison = {
+            'fighter1': {
+                'name': fighter1,
+                'career_fights': int(f1_stats.get('r_career_fights', 0)),
+                'career_wins': int(f1_stats.get('r_career_wins', 0)),
+                'career_losses': int(f1_stats.get('r_career_losses', 0)),
+                'win_rate': float(f1_stats.get('r_career_win_rate', 0)),
+                'avg_strikes': float(f1_stats.get('r_career_str', 0)) / max(1, f1_stats.get('r_career_fights', 1)),
+                'avg_takedowns': float(f1_stats.get('r_career_td', 0)) / max(1, f1_stats.get('r_career_fights', 1)),
+                'avg_knockdowns': float(f1_stats.get('r_career_kd', 0)) / max(1, f1_stats.get('r_career_fights', 1))
+            },
+            'fighter2': {
+                'name': fighter2,
+                'career_fights': int(f2_stats.get('r_career_fights', 0)),
+                'career_wins': int(f2_stats.get('r_career_wins', 0)),
+                'career_losses': int(f2_stats.get('r_career_losses', 0)),
+                'win_rate': float(f2_stats.get('r_career_win_rate', 0)),
+                'avg_strikes': float(f2_stats.get('r_career_str', 0)) / max(1, f2_stats.get('r_career_fights', 1)),
+                'avg_takedowns': float(f2_stats.get('r_career_td', 0)) / max(1, f2_stats.get('r_career_fights', 1)),
+                'avg_knockdowns': float(f2_stats.get('r_career_kd', 0)) / max(1, f2_stats.get('r_career_fights', 1))
+            }
+        }
+
+        return jsonify(comparison)
+    except Exception as e:
+        logger.error(f"Error comparing fighters: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 # Serve the frontend index.html at the root URL
 @app.route('/')
