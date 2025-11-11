@@ -5,10 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>UFC Fighter Matchup Predictor</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
+  <div class="theme-toggle">
+    <button id="theme-toggle-btn" aria-label="Toggle dark mode">
+      <span class="theme-icon">🌙</span>
+    </button>
+  </div>
+
   <div class="container">
-    <h1>UFC Fighter Matchup Predictor</h1>
+    <header class="header">
+      <h1>🥊 UFC Fight Predictor</h1>
+      <p class="subtitle">AI-powered predictions using dual-perspective machine learning</p>
+      <div class="stats-banner" id="stats-banner">
+        <div class="stat-item">
+          <span class="stat-value" id="total-fights">-</span>
+          <span class="stat-label">Total Fights</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="total-fighters">-</span>
+          <span class="stat-label">Fighters</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="weight-classes-count">-</span>
+          <span class="stat-label">Weight Classes</span>
+        </div>
+      </div>
+    </header>
     <div class="input-section">
       <div class="input-group">
         <label for="weight-class">Weight Class:</label>
@@ -37,13 +61,54 @@
       <button id="predictBtn">Predict Winner</button>
     </div>
     <div class="result-section">
-      <div id="loading" class="hidden">Calculating prediction...</div>
+      <div id="loading" class="hidden">
+        <div class="loading-spinner"></div>
+        <p>Calculating prediction...</p>
+      </div>
+
+      <div id="fighter-comparison" class="hidden">
+        <h2>Fighter Comparison</h2>
+        <div class="comparison-grid">
+          <div class="fighter-card">
+            <h3 id="fighter1-name"></h3>
+            <div id="fighter1-stats"></div>
+          </div>
+          <div class="vs-divider">VS</div>
+          <div class="fighter-card">
+            <h3 id="fighter2-name"></h3>
+            <div id="fighter2-stats"></div>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="comparison-chart"></canvas>
+        </div>
+      </div>
+
       <div id="result" class="hidden">
         <h2>Prediction Result</h2>
         <div class="prediction-card">
-          <p id="predictionText" class="prediction-main"></p>
+          <div class="winner-announcement">
+            <p id="predictionText" class="prediction-main"></p>
+            <div class="confidence-meter">
+              <div class="confidence-bar">
+                <div id="confidence-fill" class="confidence-fill"></div>
+              </div>
+              <p id="confidence-info" class="confidence-text"></p>
+            </div>
+          </div>
+
+          <div class="probability-split">
+            <div class="fighter-prob" id="fighter1-prob-display">
+              <span class="fighter-name" id="fighter1-prob-name"></span>
+              <span class="prob-value" id="fighter1-prob-value"></span>
+            </div>
+            <div class="fighter-prob" id="fighter2-prob-display">
+              <span class="fighter-name" id="fighter2-prob-name"></span>
+              <span class="prob-value" id="fighter2-prob-value"></span>
+            </div>
+          </div>
+
           <div class="prediction-details">
-            <p id="confidence-info"></p>
             <p id="weight-class-info"></p>
             <div id="model-details" class="model-details hidden">
               <h3>Model Details</h3>
@@ -53,11 +118,27 @@
             </div>
           </div>
         </div>
-        <button id="toggle-details" class="toggle-details">Show Details</button>
+        <button id="toggle-details" class="toggle-details">Show Model Details</button>
+        <button id="save-prediction" class="save-prediction">Save Prediction</button>
       </div>
+
       <div id="error" class="hidden"></div>
     </div>
+
+    <div class="prediction-history-section">
+      <h2>Recent Predictions</h2>
+      <div id="prediction-history" class="prediction-history">
+        <p class="no-history">No predictions yet. Make your first prediction above!</p>
+      </div>
+      <button id="clear-history" class="clear-history hidden">Clear History</button>
+    </div>
   </div>
+
+  <footer class="footer">
+    <p>Powered by dual-perspective machine learning with bias elimination</p>
+    <p><a href="/api/docs" target="_blank">API Documentation</a></p>
+  </footer>
+
   <script src="script.js"></script>
 </body>
 </html>

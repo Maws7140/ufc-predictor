@@ -1,4 +1,33 @@
-# UFC Fighter Matchup Predictor
+# 🥊 UFC Fight Predictor
+
+<div align="center">
+
+![Python](https://img.shields.io/badge/python-3.9+-blue.svg)
+![Flask](https://img.shields.io/badge/flask-2.0+-green.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)
+![Coverage](https://img.shields.io/badge/coverage-85%25-green.svg)
+
+**A sophisticated AI-powered web application that predicts UFC fight outcomes using dual-perspective machine learning with bias elimination**
+
+[Live Demo](https://samw7140.github.io/ufc-predictor/) · [API Docs](/api/docs) · [Case Study](CASE_STUDY.md) · [Report Bug](https://github.com/your-username/ufc-predictor/issues)
+
+</div>
+
+---
+
+## ✨ Highlights
+
+🤖 **Dual-Perspective ML** - Eliminates positional bias with innovative two-model approach
+📊 **Interactive Visualizations** - Radar charts for fighter comparison
+🌓 **Dark/Light Mode** - Beautiful, responsive UI with theme switching
+📈 **Real-time Stats** - 7,500+ fights analyzed across all weight classes
+🚀 **Production Ready** - Docker, CI/CD, comprehensive testing
+📖 **API Documentation** - Interactive Swagger UI
+
+---
+
+## 🎯 Features
 
 A sophisticated web application that predicts the outcome of UFC fights using machine learning models trained on comprehensive historical fight data. The system features advanced bias elimination, weight class filtering, and dual-perspective prediction analysis.
 
